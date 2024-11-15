@@ -1,9 +1,14 @@
 import { ClerkProvider } from '@clerk/nextjs';
+import { NextSSRPlugin } from '@uploadthing/react/next-ssr-plugin';
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
+import { connection } from 'next/server';
+import { Suspense } from 'react';
+import { extractRouterConfig } from 'uploadthing/server';
 
 import '@/assets/styles/globals.css';
 
+import { ourFileRouter } from './api/uploadthing/core';
 import ToasterProvider from '@/providers/toaster-provider';
 
 const geistSans = localFont({
@@ -23,6 +28,11 @@ export const metadata: Metadata = {
 	icons: [{ url: '/images/favicon.svg', href: '/images/favicon.svg' }],
 };
 
+async function UTSSR() {
+	await connection();
+	return <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />;
+}
+
 export default function RootLayout({
 	children,
 }: Readonly<{
@@ -34,6 +44,9 @@ export default function RootLayout({
 				<body
 					className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
 					<ToasterProvider />
+					<Suspense>
+						<UTSSR />
+					</Suspense>{' '}
 					{children}
 				</body>
 			</html>

@@ -1,7 +1,137 @@
-export default function CourseIdPage({
+import { auth } from '@clerk/nextjs/server';
+import {
+	CircleDollarSign,
+	File,
+	LayoutDashboard,
+	ListChecks,
+} from 'lucide-react';
+import { redirect } from 'next/navigation';
+
+import { AttachmentForm } from '@/components/teacher/courses/attachment-form';
+import { CategoryForm } from '@/components/teacher/courses/category-form';
+import { DescriptionForm } from '@/components/teacher/courses/description-form';
+import { ImageForm } from '@/components/teacher/courses/image-form';
+import { PriceForm } from '@/components/teacher/courses/price-form';
+import { TitleForm } from '@/components/teacher/courses/title-form';
+import { IconBadge } from '@/components/ui/icon-badge';
+
+import { db } from '@/lib/db';
+
+export default async function CourseIdPage({
 	params,
 }: {
-	params: { courseId: string };
+	params: Promise<{ courseId: string }>;
 }) {
-	return <div>Course id: {params.courseId}</div>;
+	const { userId } = await auth();
+	const { courseId } = await params;
+
+	if (!userId) {
+		return redirect('/');
+	}
+
+	const course = await db.course.findUnique({
+		where: {
+			id: courseId,
+		},
+		include: {
+			attachments: {
+				orderBy: {
+					createdAt: 'desc',
+				},
+			},
+		},
+	});
+
+	const categories = await db.category.findMany({
+		orderBy: {
+			name: 'asc',
+		},
+	});
+
+	if (!course) {
+		return redirect('/');
+	}
+
+	const requiredFields = [
+		course.title,
+		course.description,
+		course.imageUrl,
+		course.price,
+		course.categoryId,
+	];
+
+	const totalFields = requiredFields.length;
+	const completedFields = requiredFields.filter(Boolean).length;
+
+	const complectionText = `(${completedFields}/${totalFields})`;
+
+	return (
+		<div className="p-6">
+			<div className="flex items-center justify-between">
+				<div className="flex flex-col gap-y-2">
+					<h1 className="text-2xl font-medium">Course setup</h1>
+					<span className="text-sm text-slate-700">
+						Completed all fields {complectionText}
+					</span>
+				</div>
+			</div>
+			<div className="mt-16 grid grid-cols-1 gap-6 md:grid-cols-2">
+				<div className="">
+					<div className="flex items-center gap-x-2">
+						<IconBadge icon={LayoutDashboard} />
+						<h2 className="text-xl">Customize your course</h2>
+					</div>
+					<TitleForm
+						initialData={course}
+						courseId={course.id}
+					/>
+					<DescriptionForm
+						initialData={course}
+						courseId={course.id}
+					/>
+					<ImageForm
+						initialData={course}
+						courseId={course.id}
+					/>
+					<CategoryForm
+						options={categories.map((category) => ({
+							label: category.name,
+							value: category.id,
+						}))}
+						initialData={course}
+						courseId={course.id}
+					/>
+				</div>
+				<div className="space-y-6">
+					<div className="">
+						<div className="flex items-center gap-x-2">
+							<IconBadge icon={ListChecks} />
+							<h2 className="text-xl">Course chapters</h2>
+						</div>
+						<div>TODO: Chapters</div>
+					</div>
+					<div className="">
+						<div className="flex items-center gap-x-2">
+							<IconBadge icon={CircleDollarSign} />
+							<h2 className="text-xl">Sell your course</h2>
+						</div>
+						<PriceForm
+							initialData={course}
+							courseId={course.id}
+						/>
+					</div>
+					<div>
+						<div className="flex items-center gap-x-2">
+							<IconBadge icon={File} />
+							<h2 className="text-xl">Resources and attachments</h2>
+						</div>
+						<AttachmentForm
+							initialData={course}
+							courseId={course.id}
+						/>
+					</div>
+				</div>
+			</div>
+		</div>
+	);
 }
