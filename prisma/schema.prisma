@@ -5,7 +5,8 @@
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
 generator client {
-  provider = "prisma-client-js"
+  provider        = "prisma-client-js"
+  previewFeatures = ["fullTextSearch", "fullTextIndex"]
 }
 
 datasource db {
@@ -26,12 +27,15 @@ model Course {
   categoryId String?   @map("category_id")
   category   Category? @relation(fields: [categoryId], references: [id])
 
+  chapters    Chapter[]
   attachments Attachment[]
+  purchases   Purchase[]
 
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([categoryId], map: "category_id")
+  @@fulltext([title])
 }
 
 model Category {
@@ -52,4 +56,74 @@ model Attachment {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   @@index([courseId], map: "course_id")
+}
+
+model Chapter {
+  id          String  @id @default(uuid())
+  title       String
+  description String? @db.Text
+  videoUrl    String? @map("video_url") @db.Text
+  position    Int
+  isPublished Boolean @default(false) @map("is_published")
+  isFree      Boolean @default(false) @map("is_free")
+
+  muxData MuxData?
+
+  courseId String @map("course_id")
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  userProgress UserProgress[]
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@index([courseId], map: "course_id")
+}
+
+model MuxData {
+  id         String  @id @default(uuid())
+  assetId    String  @map("asset_id")
+  playbackId String? @map("playback_id")
+
+  chapterId String  @unique @map("chapter_id")
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+}
+
+model UserProgress {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+
+  chapterId String  @map("chapter_id")
+  chapter   Chapter @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+
+  isCompleted Boolean @default(false)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, chapterId])
+  @@index([chapterId], map: "chapter_id")
+}
+
+model Purchase {
+  id     String @id @default(uuid())
+  userId String @map("user_id")
+
+  courseId String @map("course_id")
+  course   Course @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, courseId])
+  @@index([courseId], map: "course_id")
+}
+
+model StripeCustomer {
+  id               String @id @default(uuid())
+  userId           String @map("user_id")
+  StripeCustomerId String @map("stripe_customer_id")
+
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 }

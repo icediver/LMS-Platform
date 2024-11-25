@@ -9,6 +9,7 @@ import { extractRouterConfig } from 'uploadthing/server';
 import '@/assets/styles/globals.css';
 
 import { ourFileRouter } from './api/uploadthing/core';
+import { ConfettiProvider } from '@/providers/confetti-provider';
 import ToasterProvider from '@/providers/toaster-provider';
 
 const geistSans = localFont({
@@ -43,6 +44,7 @@ export default function RootLayout({
 			<html lang="en">
 				<body
 					className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+					<ConfettiProvider />
 					<ToasterProvider />
 					<Suspense>
 						<UTSSR />

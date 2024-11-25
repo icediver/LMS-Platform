@@ -5,44 +5,52 @@ import { LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 
+import { SearchInput } from '@/components/search-input';
 import { Button } from '@/components/ui/shadcn/button';
 
 export default function NavbarRoutes() {
 	const pathname = usePathname();
-	const router = useRouter();
 
 	const isTeacherPage = pathname?.startsWith('/teacher');
-	const isPlayerPage = pathname?.startsWith('/chapter');
+	const isCoursePage = pathname?.includes('/courses');
+	const isSearchPage = pathname === '/search';
 
 	return (
-		<div className="ml-auto flex gap-x-2">
-			{isTeacherPage || isPlayerPage ? (
-				<Link href="/">
-					<Button
-						size="sm"
-						variant="ghost">
-						<LogOut className="size-4 mr2" />
-						Exit
-					</Button>
-				</Link>
-			) : (
-				<Link href="/teacher/courses">
-					<Button
-						size="sm"
-						variant="ghost">
-						Teacher mode
-					</Button>
-				</Link>
+		<>
+			{isSearchPage && (
+				<div className="hidden md:block">
+					<SearchInput />
+				</div>
 			)}
-			<UserButton
-				appearance={{
-					elements: {
-						userButtonPopoverFooter: 'hidden',
-						userButtonPopoverCard: 'w-72',
-						userButtonTrigger: 'size-9',
-					},
-				}}
-			/>
-		</div>
+			<div className="ml-auto flex gap-x-2">
+				{isTeacherPage || isCoursePage ? (
+					<Link href="/">
+						<Button
+							size="sm"
+							variant="ghost">
+							<LogOut className="mr2 size-4" />
+							Exit
+						</Button>
+					</Link>
+				) : (
+					<Link href="/teacher/courses">
+						<Button
+							size="sm"
+							variant="ghost">
+							Teacher mode
+						</Button>
+					</Link>
+				)}
+				<UserButton
+					appearance={{
+						elements: {
+							userButtonPopoverFooter: 'hidden',
+							userButtonPopoverCard: 'w-72',
+							userButtonTrigger: 'size-9',
+						},
+					}}
+				/>
+			</div>
+		</>
 	);
 }

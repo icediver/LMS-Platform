@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Course } from '@prisma/client';
+import { Chapter } from '@prisma/client';
 import axios from 'axios';
 import { PencilIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -11,50 +11,55 @@ import toast from 'react-hot-toast';
 import { z } from 'zod';
 
 import { Button } from '@/components/ui/shadcn/button';
+import { Checkbox } from '@/components/ui/shadcn/checkbox';
 import {
 	Form,
 	FormControl,
+	FormDescription,
 	FormField,
 	FormItem,
 	FormMessage,
 } from '@/components/ui/shadcn/form';
-import { Input } from '@/components/ui/shadcn/input';
 
-import { formatPrice } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-interface IPriceForm {
-	initialData: Course;
+interface IChapterAccessForm {
+	initialData: Chapter;
 	courseId: string;
+	chapterId: string;
 }
 
 const formSchema = z.object({
-	price: z.coerce.number(),
+	isFree: z.boolean().default(false),
 });
 
-export function PriceForm({ initialData, courseId }: IPriceForm) {
+export function ChapterAccessForm({
+	initialData,
+	courseId,
+	chapterId,
+}: IChapterAccessForm) {
 	const [isEditing, setIsEditing] = useState(false);
 
 	const toggleEdit = () => setIsEditing((current) => !current);
 
-	const form = useForm<
-		{ price: number | string },
-		void,
-		z.infer<typeof formSchema>
-	>({
+	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
-		defaultValues: { price: initialData?.price ?? '' },
+		defaultValues: {
+			isFree: Boolean(initialData.isFree),
+		},
 	});
 
 	const { isSubmitting, isValid } = form.formState;
-
 	const router = useRouter();
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		try {
-			await axios.patch(`/api/courses/${courseId}`, values);
+			await axios.patch(
+				`/api/courses/${courseId}/chapters/${chapterId}`,
+				values
+			);
 
-			toast.success('Course updated');
+			toast.success('Chapter updated');
 			toggleEdit();
 			router.refresh();
 		} catch {
@@ -65,50 +70,59 @@ export function PriceForm({ initialData, courseId }: IPriceForm) {
 	return (
 		<div className="mt-6 rounded-md border bg-slate-100 p-4">
 			<div className="flex items-center justify-between font-medium">
-				Course price
+				Chapter access
 				<Button
 					onClick={toggleEdit}
-					variant={'ghost'}>
+					variant={'ghost'}
+				>
 					{isEditing ? (
 						<>Cancel</>
 					) : (
 						<>
 							<PencilIcon className="ml-2 h-4 w-4" />
-							Edit price
+							Edit access
 						</>
 					)}
 				</Button>
 			</div>
 
 			{!isEditing && (
-				<p
+				<div
 					className={cn(
 						'mt-2 text-sm',
-						!initialData.price && 'italic text-slate-500'
-					)}>
-					{initialData.price ? formatPrice(initialData.price) : 'No price'}
-				</p>
+						!initialData.isFree && 'italic text-slate-500'
+					)}
+				>
+					{initialData.isFree ? (
+						<>This chapter is free for preview</>
+					) : (
+						<>This chapter is not free</>
+					)}
+				</div>
 			)}
-
 			{isEditing && (
 				<Form {...form}>
 					<form
 						onSubmit={form.handleSubmit(onSubmit)}
-						className="mt-4 space-y-4">
+						className="mt-4 space-y-4"
+					>
 						<FormField
 							control={form.control}
-							name="price"
+							name="isFree"
 							render={({ field }) => (
-								<FormItem>
+								<FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
 									<FormControl>
-										<Input
-											type="number"
-											step="0.01"
-											disabled={isSubmitting}
-											placeholder="Set a price for your course"
-											{...field}
+										<Checkbox
+											checked={field.value}
+											onCheckedChange={field.onChange}
 										/>
 									</FormControl>
+									<div className="space-y-1 leading-none">
+										<FormDescription>
+											Check this box if you want to make this chapter free for
+											preview
+										</FormDescription>
+									</div>
 									<FormMessage />
 								</FormItem>
 							)}
@@ -116,7 +130,8 @@ export function PriceForm({ initialData, courseId }: IPriceForm) {
 						<div className="flex items-center gap-x-2">
 							<Button
 								disabled={!isValid || isSubmitting}
-								type="submit">
+								type="submit"
+							>
 								Save
 							</Button>
 						</div>

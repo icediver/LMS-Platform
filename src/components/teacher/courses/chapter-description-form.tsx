@@ -1,7 +1,7 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Course } from '@prisma/client';
+import { Chapter } from '@prisma/client';
 import axios from 'axios';
 import { PencilIcon } from 'lucide-react';
 import { useRouter } from 'next/navigation';
@@ -10,6 +10,8 @@ import { useForm } from 'react-hook-form';
 import toast from 'react-hot-toast';
 import { z } from 'zod';
 
+import { Editor } from '@/components/ui/editor';
+import { Preview } from '@/components/ui/preview';
 import { Button } from '@/components/ui/shadcn/button';
 import {
 	Form,
@@ -18,43 +20,46 @@ import {
 	FormItem,
 	FormMessage,
 } from '@/components/ui/shadcn/form';
-import { Input } from '@/components/ui/shadcn/input';
 
-import { formatPrice } from '@/lib/format';
 import { cn } from '@/lib/utils';
 
-interface IPriceForm {
-	initialData: Course;
+interface IChapterDescriptionForm {
+	initialData: Chapter;
 	courseId: string;
+	chapterId: string;
 }
 
 const formSchema = z.object({
-	price: z.coerce.number(),
+	description: z.string().min(1),
 });
 
-export function PriceForm({ initialData, courseId }: IPriceForm) {
+export function ChapterDescriptionForm({
+	initialData,
+	courseId,
+	chapterId,
+}: IChapterDescriptionForm) {
 	const [isEditing, setIsEditing] = useState(false);
 
 	const toggleEdit = () => setIsEditing((current) => !current);
 
-	const form = useForm<
-		{ price: number | string },
-		void,
-		z.infer<typeof formSchema>
-	>({
+	const form = useForm<z.infer<typeof formSchema>>({
 		resolver: zodResolver(formSchema),
-		defaultValues: { price: initialData?.price ?? '' },
+		defaultValues: {
+			description: initialData?.description || '',
+		},
 	});
 
 	const { isSubmitting, isValid } = form.formState;
-
 	const router = useRouter();
 
 	async function onSubmit(values: z.infer<typeof formSchema>) {
 		try {
-			await axios.patch(`/api/courses/${courseId}`, values);
+			await axios.patch(
+				`/api/courses/${courseId}/chapters/${chapterId}`,
+				values
+			);
 
-			toast.success('Course updated');
+			toast.success('Chapter updated');
 			toggleEdit();
 			router.refresh();
 		} catch {
@@ -65,7 +70,7 @@ export function PriceForm({ initialData, courseId }: IPriceForm) {
 	return (
 		<div className="mt-6 rounded-md border bg-slate-100 p-4">
 			<div className="flex items-center justify-between font-medium">
-				Course price
+				Chapter description
 				<Button
 					onClick={toggleEdit}
 					variant={'ghost'}>
@@ -74,22 +79,24 @@ export function PriceForm({ initialData, courseId }: IPriceForm) {
 					) : (
 						<>
 							<PencilIcon className="ml-2 h-4 w-4" />
-							Edit price
+							Edit description
 						</>
 					)}
 				</Button>
 			</div>
 
 			{!isEditing && (
-				<p
+				<div
 					className={cn(
 						'mt-2 text-sm',
-						!initialData.price && 'italic text-slate-500'
+						!initialData.description && 'italic text-slate-500'
 					)}>
-					{initialData.price ? formatPrice(initialData.price) : 'No price'}
-				</p>
+					{!initialData.description && 'No description'}
+					{initialData.description && (
+						<Preview value={initialData.description} />
+					)}
+				</div>
 			)}
-
 			{isEditing && (
 				<Form {...form}>
 					<form
@@ -97,17 +104,11 @@ export function PriceForm({ initialData, courseId }: IPriceForm) {
 						className="mt-4 space-y-4">
 						<FormField
 							control={form.control}
-							name="price"
+							name="description"
 							render={({ field }) => (
 								<FormItem>
 									<FormControl>
-										<Input
-											type="number"
-											step="0.01"
-											disabled={isSubmitting}
-											placeholder="Set a price for your course"
-											{...field}
-										/>
+										<Editor {...field} />
 									</FormControl>
 									<FormMessage />
 								</FormItem>

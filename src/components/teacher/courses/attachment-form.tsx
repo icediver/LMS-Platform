@@ -3,14 +3,7 @@
 import { Attachment, Course } from '@prisma/client';
 import '@uploadthing/react/styles.css';
 import axios from 'axios';
-import {
-	File,
-	ImageIcon,
-	Loader2,
-	PencilIcon,
-	PlusCircle,
-	X,
-} from 'lucide-react';
+import { File, Loader2, PlusCircle, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 import toast from 'react-hot-toast';
@@ -63,12 +56,13 @@ export function AttachmentForm({ initialData, courseId }: IAttachmentForm) {
 	}
 
 	return (
-		<div className="mt-6 rounded-md border bg-slate-100 p-4">
-			<div className="flex items-center justify-between font-medium">
+		<div className="mt-6 flex rounded-md border bg-slate-100 p-4">
+			<div className=" items-center justify-between font-medium">
 				Course attachments
 				<Button
 					onClick={toggleEdit}
-					variant={'ghost'}>
+					variant={'ghost'}
+				>
 					{isEditing && <>Cancel</>}
 					{!isEditing && (
 						<>
@@ -92,7 +86,8 @@ export function AttachmentForm({ initialData, courseId }: IAttachmentForm) {
 							{initialData.attachments.map((attachment) => (
 								<div
 									key={attachment.id}
-									className="flex w-full items-center rounded-md border border-sky-200 bg-sky-100 p-3 text-sky-700">
+									className="flex w-full items-center rounded-md border border-sky-200 bg-sky-100 p-3 text-sky-700"
+								>
 									<File className="mr-2 h-4 w-4 flex-shrink-0" />
 									<p className="line-clamp-1 text-xs">{attachment.name}</p>
 									{deletingId === attachment.id && (
@@ -103,7 +98,8 @@ export function AttachmentForm({ initialData, courseId }: IAttachmentForm) {
 									{deletingId !== attachment.id && (
 										<button
 											className="ml-auto transition hover:opacity-75"
-											onClick={() => onDelete(attachment.id)}>
+											onClick={() => onDelete(attachment.id)}
+										>
 											<X className="h-4 w-4" />
 										</button>
 									)}
