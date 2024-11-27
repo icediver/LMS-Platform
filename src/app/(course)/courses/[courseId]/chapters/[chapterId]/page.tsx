@@ -3,6 +3,7 @@ import { File } from 'lucide-react';
 import { redirect } from 'next/navigation';
 
 import { CourseEnrollButton } from '@/components/courses/course-enroll-button';
+import CourseProgressButton from '@/components/courses/course-progress-button';
 import { Banner } from '@/components/teacher/courses/banner';
 import { Preview } from '@/components/ui/preview';
 import { Separator } from '@/components/ui/shadcn/separator';
@@ -37,6 +38,7 @@ export default async function ChapterIdPage({
 
 	if (!chapter || !course) {
 		return redirect('/');
+		ot;
 	}
 
 	const isLocked = !chapter.isFree && !purchase;
@@ -72,7 +74,14 @@ export default async function ChapterIdPage({
 					<div className="flex flex-col items-center justify-between p-4 md:flex-row">
 						<h2 className="mb-2 text-2xl font-semibold">{chapter.title}</h2>
 						{purchase ? (
-							<div>{/*TODO: Add CourseProgressButton*/}</div>
+							<div>
+								<CourseProgressButton
+									chapterId={(await params).chapterId}
+									courseId={(await params).courseId}
+									nextChapterId={nextChapter?.id}
+									isCompleted={!!userProgress?.isCompleted}
+								/>
+							</div>
 						) : (
 							<CourseEnrollButton
 								courseId={(await params).courseId}
