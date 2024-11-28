@@ -38,7 +38,6 @@ export default async function ChapterIdPage({
 
 	if (!chapter || !course) {
 		return redirect('/');
-		ot;
 	}
 
 	const isLocked = !chapter.isFree && !purchase;

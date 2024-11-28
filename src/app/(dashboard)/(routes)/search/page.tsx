@@ -1,5 +1,7 @@
 import { auth } from '@clerk/nextjs/server';
+import { Loader2 } from 'lucide-react';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 
 import { Categories } from '@/components/categories/categories';
 import { CoursesList } from '@/components/courses/courses-list';
@@ -15,7 +17,11 @@ interface ISearchPage {
 	};
 }
 
-export default async function SearchPage(params: Promise<ISearchPage>) {
+export default async function SearchPage({
+	params,
+}: {
+	params: Promise<ISearchPage>;
+}) {
 	const { userId } = await auth();
 
 	if (!userId) {
@@ -36,7 +42,14 @@ export default async function SearchPage(params: Promise<ISearchPage>) {
 	return (
 		<>
 			<div className="block px-6 pt-6 md:mb-0 md:hidden">
-				<SearchInput />
+				<Suspense
+					fallback={
+						<>
+							<Loader2 className="h-4 w-4 animate-spin" />
+						</>
+					}>
+					<SearchInput />
+				</Suspense>
 			</div>
 			<div className="space-y-4 p-6">
 				<Categories items={categories} />

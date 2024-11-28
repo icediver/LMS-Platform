@@ -6,7 +6,7 @@ import { isTeacher } from '@/lib/teacher';
 
 export async function POST(
 	req: Request,
-	{ params }: { params: { courseId: string } }
+	{ params }: { params: Promise<{ courseId: string }> }
 ) {
 	try {
 		const { userId } = await auth();
@@ -19,7 +19,7 @@ export async function POST(
 
 		const courseOwner = await db.course.findUnique({
 			where: {
-				id: params.courseId,
+				id: (await params).courseId,
 				userId,
 			},
 		});
@@ -30,7 +30,7 @@ export async function POST(
 
 		const lastChapter = await db.chapter.findFirst({
 			where: {
-				courseId: params.courseId,
+				courseId: (await params).courseId,
 			},
 			orderBy: {
 				position: 'desc',
@@ -42,7 +42,7 @@ export async function POST(
 		const chapter = await db.chapter.create({
 			data: {
 				title,
-				courseId: params.courseId,
+				courseId: (await params).courseId,
 				position: newPosition,
 			},
 		});

@@ -1,9 +1,11 @@
 'use client';
 
-import { UserButton, useAuth } from '@clerk/nextjs';
-import { LogOut } from 'lucide-react';
+import { UserButton, useAuth } from '@clerk/clerk-react';
+import { ClerkProvider } from '@clerk/nextjs';
+import { Loader2, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
+import { Suspense } from 'react';
 
 import { SearchInput } from '@/components/search-input';
 import { Button } from '@/components/ui/shadcn/button';
@@ -21,9 +23,16 @@ export default function NavbarRoutes() {
 	return (
 		<>
 			{isSearchPage && (
-				<div className="hidden md:block">
-					<SearchInput />
-				</div>
+				<Suspense
+					fallback={
+						<>
+							<Loader2 className="h-4 w-4 animate-spin" />
+						</>
+					}>
+					<div className="hidden md:block">
+						<SearchInput />
+					</div>
+				</Suspense>
 			)}
 			<div className="ml-auto flex gap-x-2">
 				{isTeacherPage || isCoursePage ? (

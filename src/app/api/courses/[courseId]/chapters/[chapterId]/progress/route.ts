@@ -7,8 +7,6 @@ export async function PUT(
 	req: Request,
 	{ params }: { params: Promise<{ courseId: string; chapterId: string }> }
 ) {
-	console.log('[CHAPTER_ID_PROGRESS]');
-
 	try {
 		const { courseId, chapterId } = await params;
 		const { userId } = await auth();

@@ -29,8 +29,6 @@ export async function CourseSidebar({ course, progressCount }: ICourseSidebar) {
 		},
 	});
 
-	console.log('course', course, purchase);
-
 	return (
 		<div className="flex h-full flex-col overflow-y-auto border-r shadow-sm">
 			<div className="flex flex-col border-b p-8">

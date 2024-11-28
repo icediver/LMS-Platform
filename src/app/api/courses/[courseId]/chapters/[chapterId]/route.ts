@@ -149,8 +149,6 @@ export async function PATCH(
 				test: false,
 			});
 
-			console.log('route', asset);
-
 			await db.muxData.create({
 				data: {
 					chapterId: chapterId,
